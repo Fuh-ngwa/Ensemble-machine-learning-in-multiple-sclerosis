@@ -101,3 +101,31 @@ res.all     <- MEml2(method= "MEgbm", data = msdat, id=id,  resp.vars= resp.vars
 
 ##Save enet-ensemble results
 save(res.bin.trn1,res.bin.trn2, res.bin.trn3, res.bin.trn4,res.bin.tst,res.all, file="EnetEnsemble.RData")
+
+
+
+#############################################
+###Classification using NNG-SIS -Selected SNPs ##
+#############################################
+
+##Training and Validation data
+sisdat.trn<-cbind.data.frame(dat.trn[,1:8], dat.trn[,sis.snps[-c(1:4)]])
+sisdat.tst<-cbind.data.frame(dat.tst[,1:8], dat.tst[,sis.snps[-c(1:4)]])
+
+##Declare Random and Fix components
+rand.vars= c("visit", "trans")  ## random effect variables 
+rhs.vars1 <-c("Tstop", "mstype","visit", sis.snps[-c(1:4)]) ## fixed effect variables 
+rhs.vars2 <-c(sis.snps[-c(1:4)])   ## fixed effect variables 
+
+###Train Enet-Ensemble models
+res.bin.trn1  <- MEml2(method= "MEgbm", data = sisdat.trn, id=id,  resp.vars= resp.vars, rhs.vars= rhs.vars1, rand.vars=rand.vars, para=para)
+res.bin.trn2  <- MEml2(method= "MErf", data = sisdat.trn, id=id,  resp.vars= resp.vars, rhs.vars= rhs.vars1, rand.vars=rand.vars, para=para)
+res.bin.trn3  <- MEml2(method= "GBM", data = sisdat.trn, id=id,  resp.vars= resp.vars, rhs.vars= rhs.vars2, rand.vars=NULL, para=para)
+res.bin.trn4  <- MEml2(method= "RF", data = sisdat.trn, id=id,  resp.vars= resp.vars, rhs.vars= rhs.vars2, rand.vars=NULL, para=para)
+
+##compute L-score on test set using MEgbm
+res.bin.tst <- MEml2(method= "MEgbm", data = sisdat.tst, id=id,  resp.vars= resp.vars, rhs.vars= rhs.vars1, rand.vars=rand.vars, para=para)
+res.all     <- MEml2(method= "MEgbm", data = msdat, id=id,  resp.vars= resp.vars, rhs.vars= rhs.vars1, rand.vars=rand.vars, para=para)
+
+##Save SIS-ensemble results
+save(res.bin.trn1,res.bin.trn2, res.bin.trn3, res.bin.trn4,res.bin.tst,res.all, file="SISEnsemble.RData")
